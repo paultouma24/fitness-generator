@@ -8,6 +8,7 @@ from flask import Flask, render_template
 app = Flask(__name__)
 
 latest_workout = None
+app.template_folder = "../frontend/templates"
 
 
 @app.template_filter("newline_to_br")
@@ -25,7 +26,9 @@ def generate():
     global latest_workout
     latest_workout = LiftWorkout()
     return render_template(
-        "main.html", workout=str(latest_workout), history=LIFT_HISTORY_STRS[::-1]
+        "main.html",
+        workout=str(latest_workout),
+        history=LIFT_HISTORY_STRS[::-1],
     )
 
 
