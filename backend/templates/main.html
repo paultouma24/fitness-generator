@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Workout</title>
+</head>
+<body>
+    <h1>Generate Workout</h1>
+    <form method="POST" action="{{ url_for('generate') }}">
+        <button type="submit">Generate</button>
+    </form>
+    {% if workout %}
+        <p>{{ workout | safe }}</p>
+        <form method="POST" action="{{ url_for('approve') }}">
+            <button type="submit">Approve</button>
+        </form>
+    {% endif %}
+
+    {% if history %}
+    <h2>History (newest to oldest)</h2>
+    <ul reversed>
+        {% for item in history %}
+            <li>{{ item | safe }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    
+</body>
+</html>
