@@ -2,10 +2,49 @@
 <html>
 <head>
     <title>Generate Workout</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@400;700&display=swap');
+
+        body {
+            background-color: rgb(106, 106, 252);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Helvetica Neue Light', sans-serif;
+            overflow-y: auto;
+        }
+        
+        h1,h2 {
+            color: white;
+        }
+        
+        form {
+            margin-top: 20px;
+        }
+        
+        p {
+            color: white;
+            margin-top: 20px;
+        }
+        
+        ul {
+            list-style-type: none;
+            padding: 0;
+            overflow-y: auto;
+        }
+        
+        li {
+            color: white;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
     <h1>Generate Workout</h1>
-    <form method="POST" action="{{ url_for('generate') }}">
+    <form method="GET" action="{{ url_for('generate') }}">
         <button type="submit">Generate</button>
     </form>
     {% if workout %}
@@ -17,7 +56,7 @@
 
     {% if history %}
     <h2>History (newest to oldest)</h2>
-    <ul reversed>
+    <ul>
         {% for item in history %}
             <li>{{ item | safe }}</li>
         {% endfor %}

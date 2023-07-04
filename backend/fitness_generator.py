@@ -1,77 +1,78 @@
+import pickle
 import random
+from functools import cache
+from typing import List, Optional
 
-from config import LIFTING_EXERCISES, LiftCategory
+from workout_config import LIFTS_BY_BODY_PART, BodyPart, Exercise, LiftWorkout
 
-LIFT_HISTORY_STRS = []
-LIFT_HISTORY = []
+SAVED_WORKOUTS_FILE_PATH = "backend/saved_workouts.pckl"
 
 
-class LiftWorkout:
-    def __init__(self):
-        self.exercises = {
-            LiftCategory.CHEST: None,
-            LiftCategory.BACK: None,
-            LiftCategory.HINGE: None,
-            LiftCategory.SHRUG: None,
-            LiftCategory.SHOULDER: None,
-            LiftCategory.PRESS: None,
-            LiftCategory.BICEPS: None,
-            LiftCategory.TRICEPS: None,
-            LiftCategory.CORE: None,
-            LiftCategory.CALVES: None,
-        }
+class WorkoutGeneratorUtility:
+    latest_workout: Optional[Exercise] = None
+    lift_history: List[Exercise] = []
 
-        self.populate_workout()
-
-    def populate_workout(self):
-        exercise_categories = {
-            LiftCategory.CHEST: [],
-            LiftCategory.BACK: [],
-            LiftCategory.HINGE: [],
-            LiftCategory.SHRUG: [],
-            LiftCategory.SHOULDER: [],
-            LiftCategory.PRESS: [],
-            LiftCategory.BICEPS: [],
-            LiftCategory.TRICEPS: [],
-            LiftCategory.CORE: [],
-            LiftCategory.CALVES: [],
-        }
-
-        for exercise in LIFTING_EXERCISES:
-            exercise_categories[exercise.category].append(exercise)
-
-        # Get the last two workouts from LIFT_HISTORY
+    @classmethod
+    # Exclude exercises from the last two workouts, as to not repeat the any exercise twice in one week
+    def get_excluded_exercises(cls) -> List[Exercise]:
         look_back_window = []
-        if LIFT_HISTORY:
-            if len(LIFT_HISTORY) == 1:
-                look_back_window = [LIFT_HISTORY[0]]
-            else:
-                look_back_window = LIFT_HISTORY[-2:]
-
-        # Exclude exercises from the last two workouts
         excluded_exercises = set()
+        if cls.lift_history:
+            if len(cls.lift_history) == 1:
+                look_back_window = [cls.lift_history[0]]
+            else:
+                look_back_window = cls.lift_history[-2:]
         for workout in look_back_window:
             for exercise in workout.exercises.values():
                 if exercise:
                     excluded_exercises.add(exercise)
+
+        return excluded_exercises
+
+    @staticmethod
+    def generate_random_exercise_for_body_part(
+        body_part: BodyPart, excluded_exercises: List[Exercise]
+    ) -> Exercise:
+        available_exercises = [
+            exercise
+            for exercise in LIFTS_BY_BODY_PART[body_part]
+            if exercise not in excluded_exercises
+        ]
+        return random.choice(available_exercises)
+
+    @classmethod
+    def generate_workout(cls) -> None:
+        excluded_exercises = cls.get_excluded_exercises()
+
+        workout = LiftWorkout()
+
         # Select exercises for the current workout, excluding the excluded exercises
-        for category in exercise_categories:
-            available_exercises = [
-                exercise
-                for exercise in exercise_categories[category]
-                if exercise not in excluded_exercises
-            ]
-            exercise = random.choice(available_exercises)
-            self.exercises[category] = exercise
+        for body_part in LIFTS_BY_BODY_PART:
+            exercise = cls.generate_random_exercise_for_body_part(
+                body_part=body_part, excluded_exercises=excluded_exercises
+            )
+            workout.exercises[body_part] = exercise
 
-    def __str__(self):
-        workout_str = ""
-        for category, exercise in self.exercises.items():
-            workout_str += f"{category.name}: {exercise.name}<br>"
-        return workout_str
+        cls.latest_workout = workout
 
+    @classmethod
+    def load_workouts(cls) -> None:
+        try:
+            with open(SAVED_WORKOUTS_FILE_PATH, "rb") as file:
+                cls.lift_history = pickle.load(file)
+        except FileNotFoundError as e:
+            cls.lift_history = []
 
-def save_workout(workout: LiftWorkout):
-    # save to DB eventually
-    LIFT_HISTORY_STRS.append(str(workout))
-    LIFT_HISTORY.append(workout)
+    @classmethod
+    def save_workout(
+        cls,
+    ) -> None:
+        if cls.lift_history is not None and cls.latest_workout is not None:
+            cls.lift_history.append(cls.latest_workout)
+            with open(SAVED_WORKOUTS_FILE_PATH, "wb") as file:
+                pickle.dump(cls.lift_history, file)
+                cls.latest_workout = None
+
+    @classmethod
+    def get_workout_history(cls) -> List[str]:
+        return [str(s) for s in cls.lift_history[::-1]]
