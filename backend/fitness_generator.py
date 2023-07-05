@@ -1,6 +1,5 @@
 import pickle
 import random
-from functools import cache
 from typing import List, Optional
 
 from workout_config import LIFTS_BY_BODY_PART, BodyPart, Exercise, LiftWorkout
@@ -13,8 +12,12 @@ class WorkoutGeneratorUtility:
     lift_history: List[Exercise] = []
 
     @classmethod
-    # Exclude exercises from the last two workouts, as to not repeat the any exercise twice in one week
     def get_excluded_exercises(cls) -> List[Exercise]:
+        """
+        Gets the excluded exercises based on the lift history's 2 most recent workouts
+        Returns:
+            List[Exercise]: list of excluded exercises
+        """
         look_back_window = []
         excluded_exercises = set()
         if cls.lift_history:
@@ -33,6 +36,16 @@ class WorkoutGeneratorUtility:
     def generate_random_exercise_for_body_part(
         body_part: BodyPart, excluded_exercises: List[Exercise]
     ) -> Exercise:
+        """
+        Returns a random exercise (excluding excluded exercises).
+
+        Args:
+            body_part: body part to generate exercise for.
+            excluded_exercises: list of excluded exercises
+
+        Returns:
+            Exercise: one of the exercises for a workout
+        """
         available_exercises = [
             exercise
             for exercise in LIFTS_BY_BODY_PART[body_part]
@@ -42,6 +55,8 @@ class WorkoutGeneratorUtility:
 
     @classmethod
     def generate_workout(cls) -> None:
+        # Creates a workout going through each of the body parts for that workout.
+
         excluded_exercises = cls.get_excluded_exercises()
 
         workout = LiftWorkout()
@@ -57,16 +72,18 @@ class WorkoutGeneratorUtility:
 
     @classmethod
     def load_workouts(cls) -> None:
+        # loads historical workouts from FS
         try:
             with open(SAVED_WORKOUTS_FILE_PATH, "rb") as file:
                 cls.lift_history = pickle.load(file)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             cls.lift_history = []
 
     @classmethod
     def save_workout(
         cls,
     ) -> None:
+        # saves workout history to FS
         if cls.lift_history is not None and cls.latest_workout is not None:
             cls.lift_history.append(cls.latest_workout)
             with open(SAVED_WORKOUTS_FILE_PATH, "wb") as file:
@@ -75,4 +92,10 @@ class WorkoutGeneratorUtility:
 
     @classmethod
     def get_workout_history(cls) -> List[str]:
+        """
+        Returns workout history in string format for frontend template.
+
+        Returns:
+            List[str]: list of workouts in string form
+        """
         return [str(s) for s in cls.lift_history[::-1]]

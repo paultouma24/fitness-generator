@@ -9,3 +9,6 @@ repos:
     hooks:
       - id: pylint
         args: [--disable=C0114]
+        env:
+          - name: PYTHONPATH
+            value: backend/

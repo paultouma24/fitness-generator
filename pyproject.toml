@@ -14,6 +14,7 @@ debugpy = "^1.6.7"
 black = "^23.3.0"
 pylint = "^2.17.4"
 pre-commit = "^3.3.3"
+pytest = "^7.4.0"
 
 
 [build-system]

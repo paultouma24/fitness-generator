@@ -36,7 +36,7 @@ class Exercise:
         return hash(self.name)
 
 
-class LiftWorkout:
+class LiftWorkout:  # pylint: disable=too-few-public-methods
     def __init__(self):
         self.exercises = {
             BodyPart.CHEST: None,
@@ -53,12 +53,12 @@ class LiftWorkout:
 
     def __str__(self):
         workout_str = ""
-        for body_part, exercise in self.exercises.items():
-            workout_str += f"{body_part.name}: {exercise.name}<br>"
+        for body_part, ex in self.exercises.items():
+            workout_str += f"{body_part.name}: {ex.name}<br>"
         return workout_str
 
 
-# instanciate all lift exercises
+# instantiate all lift exercises
 LIFTING_EXERCISES = [
     # CHEST
     Exercise("Flat DB Press", BodyPart.CHEST),
@@ -117,6 +117,7 @@ LIFTING_EXERCISES = [
     Exercise("Unweighted Calf Burnout (disregard reps)", BodyPart.CALVES),
 ]
 
+# by body part
 LIFTS_BY_BODY_PART = defaultdict(list)
 for exercise in LIFTING_EXERCISES:
     LIFTS_BY_BODY_PART[exercise.body_part].append(exercise)

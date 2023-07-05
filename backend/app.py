@@ -7,6 +7,7 @@ app.template_folder = "../frontend/templates"
 
 
 def main_template():
+    # returns rendering of main page with associated workout and lift history
     latest_workout = WorkoutGeneratorUtility.latest_workout
     return render_template(
         "main.html",
@@ -16,7 +17,7 @@ def main_template():
 
 
 @app.route("/")
-def index():
+def root():
     WorkoutGeneratorUtility.load_workouts()
     return main_template()
 
